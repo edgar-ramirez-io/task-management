@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  db:
+    platform: linux/x86_64
+    image: mysql:9.0.1
+    environment:
+      MYSQL_DATABASE: task-management
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    ports:
+      - 3306:3306

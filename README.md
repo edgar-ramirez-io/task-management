@@ -34,6 +34,11 @@ $ yarn install
 
 ## Running the app
 
+# Run DB
+
+1. Install Docker
+1. `docker-compose up`
+
 ```bash
 # development
 $ yarn run start
