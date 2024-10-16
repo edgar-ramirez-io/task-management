@@ -1,0 +1,25 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+directive @upper on FIELD_DEFINITION
+
+"""User Model"""
+type UserModel {
+  id: ID!
+  username: String!
+  email: String!
+  password: String!
+}
+
+"""Task Model"""
+type TaskModel {
+  id: ID!
+  description: String
+  status: String!
+  user: UserModel!
+}
+
+type Query {
+  task(id: String!): TaskModel!
+}

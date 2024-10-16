@@ -52,6 +52,10 @@ $ yarn run start:dev
 $ yarn run start:prod
 ```
 
+## GraphQL
+
+1.  Open GraphQL playground with http://localhost:3000/graphql
+
 ## Test
 
 ```bash
