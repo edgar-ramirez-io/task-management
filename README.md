@@ -56,6 +56,10 @@ $ yarn run start:prod
 
 1.  Open GraphQL playground with http://localhost:3000/graphql
 
+## Hitting endpoints
+
+- [Curls for API](./HowToUseTheAPI.md)
+
 ## Test
 
 ```bash
