@@ -124,4 +124,74 @@ describe('misc', () => {
     expect(mySet3.insert(0)).toBe(true)
     expect(mySet3.getRandom()).toBe(0)
   })
+
+  it('WordDictionary', () => {
+    class WordDictionary {
+      trie: { [key: string]: {} }
+
+      constructor() {
+        this.trie = {}
+      }
+
+      add(word: string) {
+        let node = this.trie
+
+        for (let char of word) {
+          if (!node[char]) {
+            node[char] = {}
+          }
+          node = node[char]
+        }
+        node['$'] = true
+      }
+
+      search(word: string): boolean {
+        return this.searchInNode(word, 0, this.trie)
+      }
+
+      private searchInNode(
+        word: string,
+        index: number,
+        node: { [key: string]: {} },
+      ): boolean {
+        if (index === word.length) {
+          return node['$'] === true
+        }
+
+        const char = word[index]
+        if (char === '.') {
+          for (const char in node) {
+            if (
+              char !== '$' &&
+              this.searchInNode(word, index + 1, node[char])
+            ) {
+              return true
+            }
+          }
+          return false
+        } else {
+          if (!node[char]) {
+            return false
+          }
+          return this.searchInNode(word, index + 1, node[char])
+        }
+      }
+    }
+
+    const wordDictionary = new WordDictionary()
+    expect(wordDictionary.add('test')).toBeUndefined()
+    expect(wordDictionary.search('test')).toBe(true)
+    expect(wordDictionary.search('test2')).toBe(false)
+    expect(wordDictionary.add('test2')).toBeUndefined()
+    expect(wordDictionary.search('test2')).toBe(true)
+    expect(wordDictionary.search('tes.')).toBe(true)
+
+    expect(wordDictionary.add('bad')).toBeUndefined()
+    expect(wordDictionary.add('dad')).toBeUndefined()
+    expect(wordDictionary.add('mad')).toBeUndefined()
+    expect(wordDictionary.search('pad')).toBe(false)
+    expect(wordDictionary.search('bad')).toBe(true)
+    expect(wordDictionary.search('.ad')).toBe(true)
+    expect(wordDictionary.search('b..')).toBe(true)
+  })
 })
