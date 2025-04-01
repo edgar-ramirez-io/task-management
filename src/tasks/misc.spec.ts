@@ -1,3 +1,5 @@
+import { timestamp } from 'rxjs'
+
 describe('misc', () => {
   it('test Set and Map', function () {
     let set = new Set()
@@ -483,6 +485,508 @@ describe('misc', () => {
       minStack.pop()
       expect(minStack.top()).toBe(0)
       expect(minStack.getMin()).toBe(-2)
+    })
+  })
+
+  describe('isIsomorphic', () => {
+    it('test it', () => {
+      function isIsomorphic(s: string, t: string): boolean {
+        if (s.length !== t.length) {
+          return false
+        }
+        return transformString(s) === transformString(t)
+      }
+
+      function transformString(s: string): string {
+        const dict = {}
+        const result = []
+
+        for (let i = 0; i < s.length; i++) {
+          const char = s[i]
+          if (dict[char] === undefined) {
+            dict[char] = i
+          }
+          result.push(dict[char])
+        }
+        return result.join(' ')
+      }
+
+      expect(isIsomorphic('egg', 'add')).toBe(true)
+      expect(isIsomorphic('foo', 'bar')).toBe(false)
+      expect(isIsomorphic('ab', 'aa')).toBe(false)
+    })
+  })
+
+  describe('wordPattern', () => {
+    function wordPattern(pattern: string, s: string): boolean {
+      const words = s.split(' ')
+
+      if (pattern.length !== words.length) {
+        return false
+      }
+
+      const dict = {}
+
+      for (let index = 0; index < pattern.length; index++) {
+        const letter = pattern[index]
+        const word = words[index]
+
+        const prefix_key_letter = `letter_${letter}`
+        const prefix_key_word = `word_${word}`
+
+        if (dict[prefix_key_letter] === undefined) {
+          dict[prefix_key_letter] = index
+        }
+
+        if (dict[prefix_key_word] === undefined) {
+          dict[prefix_key_word] = index
+        }
+
+        if (dict[prefix_key_letter] !== dict[prefix_key_word]) {
+          return false
+        }
+      }
+      return true
+    }
+
+    it('test it', () => {
+      expect(wordPattern('abba', 'dog cat cat dog')).toBe(true)
+      expect(wordPattern('abba', 'dog cat cat fish')).toBe(false)
+      expect(wordPattern('aaaa', 'dog cat cat dog')).toBe(false)
+      expect(wordPattern('aaaa', 'a a a a')).toBe(true)
+      expect(wordPattern('aaaa', 'a b b a')).toBe(false)
+      expect(wordPattern('abc', 'b c a')).toBe(true)
+      expect(wordPattern('abba', 'dog constructor constructor dog')).toBe(true)
+    })
+  })
+
+  describe('RecentCounter', () => {
+    it('test it', () => {
+      class RecentCounter {
+        private queue: Array<number>
+        constructor() {
+          this.queue = []
+        }
+
+        ping(t: number): number {
+          this.queue.push(t)
+          while (this.queue.length > 0 && this.queue[0] < t - 3000) {
+            this.queue.shift()
+          }
+          return this.queue.length
+        }
+      }
+
+      const recentCounter = new RecentCounter()
+
+      expect(recentCounter.ping(1)).toBe(1) // range [-2999, 1] -> 1
+      expect(recentCounter.ping(100)).toBe(2) // range [-2900, 100] -> 1, 100
+      expect(recentCounter.ping(3001)).toBe(3) // range [1, 3001] -> 1, 100, 3001
+      expect(recentCounter.ping(3002)).toBe(3) // range [2, 3002] -> 100, 3001, 3002
+    })
+  })
+
+  describe('StockSpanner', () => {
+    class StockSpanner {
+      stack: [number, number][]
+
+      constructor() {
+        this.stack = []
+      }
+
+      next(price: number): number {
+        let ans = 1
+        while (
+          this.stack.length > 0 &&
+          this.stack[this.stack.length - 1][0] <= price
+        ) {
+          ans += this.stack[this.stack.length - 1][1]
+          this.stack.pop()
+        }
+        this.stack.push([price, ans])
+        return ans
+      }
+    }
+    it('test it', () => {
+      const stockSpanner = new StockSpanner()
+
+      expect(stockSpanner.next(100)).toBe(1)
+      expect(stockSpanner.stack).toStrictEqual([[100, 1]])
+      expect(stockSpanner.next(80)).toBe(1)
+      expect(stockSpanner.stack).toStrictEqual([
+        [100, 1],
+        [80, 1],
+      ])
+      expect(stockSpanner.next(60)).toBe(1)
+      expect(stockSpanner.stack).toStrictEqual([
+        [100, 1],
+        [80, 1],
+        [60, 1],
+      ])
+      expect(stockSpanner.next(70)).toBe(2)
+      expect(stockSpanner.stack).toStrictEqual([
+        [100, 1],
+        [80, 1],
+        [70, 2],
+      ])
+      expect(stockSpanner.next(60)).toBe(1)
+      expect(stockSpanner.stack).toStrictEqual([
+        [100, 1],
+        [80, 1],
+        [70, 2],
+        [60, 1],
+      ])
+      expect(stockSpanner.next(75)).toBe(4)
+      expect(stockSpanner.stack).toStrictEqual([
+        [100, 1],
+        [80, 1],
+        [75, 4],
+      ])
+      expect(stockSpanner.next(85)).toBe(6)
+      expect(stockSpanner.stack).toStrictEqual([
+        [100, 1],
+        [85, 6],
+      ])
+    })
+  })
+
+  describe('stripe glassdoor', () => {
+    it('problem 1', () => {
+      /*
+      Given a list of inputs which are strings of words separated by 
+      commas, print specific words from the input in a given format.  
+      e.g. String input could be a list of strings that look like this: 
+      "1, A1, 5000, card_number, 1234567"  
+      The words represent the timestamp, ID, amount, type, and value respectively. 
+      For each string input, print the info in this format: "ID amount APPROVED". 
+      You can assume everything is approved for now. Print the info in 
+      chronological order according to their timestamps.
+
+      Using the same list of string inputs and another list of string inputs 
+      denoting requirements, print each string input in this format: 
+      "ID amount APPROVED" if it does not violate any of the requirements and 
+      "ID amount REJECTED" if it does violate. 
+      e.g. String input could be a list of strings that look like this: 
+      "1, A1, 5000, card_number, 1234567" 
+      Requirements could be a list of string that look like this: 
+      "1, card_number, 1234567". 
+      This means that when timestamp 1 happens, this requirement is activated 
+      and anything that has a timestamp of 1 or higher and has type card_number 
+      and value of 1234567 should be printed with "REJECTED" instead of "APPROVED".
+      */
+
+      function parsePaymentsString(input: string[]) {
+        const payments = input.map((value) => {
+          const components = value.split(',').map((value) => value.trim())
+          return {
+            timestamp: Number(components[0]),
+            id: components[1],
+            amount: components[2],
+            type: components[3],
+            value: components[4],
+          }
+        })
+        return payments
+      }
+
+      function sortPayments(payments: any[]) {
+        // TODO: handle edge cases
+        return payments.sort((a, b) => a['timestamp'] - b['timestamp'])
+      }
+
+      function createMap(requirements: any[]) {
+        let map = {}
+        for (let value of requirements) {
+          const components = value.split(',').map((value) => value.trim())
+          map[Number(components[0])] = {
+            type: components[1],
+            value: components[2],
+          }
+        }
+
+        return map
+      }
+
+      function applyRequirements(payments: any[], requirements: any[]) {
+        const requirementsByTimestamp = createMap(requirements)
+        return payments.map((p) => {
+          let isRejected = false
+          for (let timestamp in requirementsByTimestamp) {
+            const req = requirementsByTimestamp[timestamp]
+            if (
+              p.timestamp >= timestamp &&
+              p.type === req.type &&
+              p.value === req.value
+            ) {
+              isRejected = true
+              break
+            }
+          }
+          return `${p.id} ${p.amount} ${isRejected ? 'REJECTED' : 'APPROVED'}`
+        })
+      }
+
+      function processPayments(input: string[], requirements: string[]) {
+        const payments = parsePaymentsString(input)
+        const sortedPayments = sortPayments(payments)
+        applyRequirements(sortedPayments, requirements).forEach((value) =>
+          console.log(value),
+        )
+      }
+
+      expect(
+        parsePaymentsString(['1, A1, 5000, card_number, 1234567']),
+      ).toEqual([
+        {
+          amount: '5000',
+          id: 'A1',
+          timestamp: 1,
+          type: 'card_number',
+          value: '1234567',
+        },
+      ])
+      expect(
+        sortPayments([
+          {
+            amount: '1000',
+            id: 'C3',
+            timestamp: 3,
+            type: 'card_number',
+            value: '7654321',
+          },
+          {
+            amount: '3000',
+            id: 'B2',
+            timestamp: 2,
+            type: 'card_number',
+            value: '7654321',
+          },
+          {
+            amount: '5000',
+            id: 'A1',
+            timestamp: 1,
+            type: 'card_number',
+            value: '1234567',
+          },
+        ]),
+      ).toStrictEqual([
+        {
+          amount: '5000',
+          id: 'A1',
+          timestamp: 1,
+          type: 'card_number',
+          value: '1234567',
+        },
+        {
+          amount: '3000',
+          id: 'B2',
+          timestamp: 2,
+          type: 'card_number',
+          value: '7654321',
+        },
+        {
+          amount: '1000',
+          id: 'C3',
+          timestamp: 3,
+          type: 'card_number',
+          value: '7654321',
+        },
+      ])
+      expect(
+        applyRequirements(
+          [
+            {
+              amount: '5000',
+              id: 'A1',
+              timestamp: 1,
+              type: 'card_number',
+              value: '1234567',
+            },
+            {
+              amount: '3000',
+              id: 'B2',
+              timestamp: 2,
+              type: 'card_number',
+              value: '7654321',
+            },
+          ],
+          ['1, card_number, 1234567'],
+        ),
+      ).toStrictEqual(['A1 5000 REJECTED', 'B2 3000 APPROVED'])
+      expect(createMap(['1, card_number, 1234567'])).toStrictEqual({
+        1: { type: 'card_number', value: '1234567' },
+      })
+
+      expect(() => {
+        processPayments(
+          [
+            '2, B2, 3000, card_number, 7654321',
+            '1, A1, 5000, card_number, 1234567',
+            '3, C3, 1000, card_number, 9876543',
+          ],
+          ['1, card_number, 1234567'],
+        )
+      }).not.toThrow()
+    })
+    it('problem 2', () => {
+      /*
+      Find the best time to shut down a machine given a string of 
+      server-statuses "1 0 1 0 0 1" and a time that the server was 
+      taken offline (where 0 = running, 1 = offline)
+      */
+    })
+    it('problem 3', () => {
+      /*
+      Given an input string: 
+      "UK:US:FedEx:4,UK:FR:Jet1:2,US:UK:RyanAir:8,CA:UK:CanadaAir:8" 
+      Which represents flights between destinations in the format: 
+      "Source:Destination:Airline:Cost,..."
+       Write a function which will take a Source and Destination 
+       and output the cost.
+
+       (Building from the first question) Write a function which will 
+       take an Input String, Source and Destination that have no 
+       direct connecting flight, and output a route that you can take 
+       to reach the destination. The output should be in the format: 
+       return {'route': 'US -> UK -> FR', 'method': 'RyanAir -> Jet1', 'cost': 10}
+      */
+
+      function findCheapestPrice(
+        n: number,
+        flights: number[][],
+        src: number,
+        dst: number,
+        k: number,
+      ): number {
+        const queue: [number, number][] = [[src, 0]]
+        const adj = {}
+        const MAX_COST = Number.MAX_VALUE
+        const dist = new Array(n).fill(MAX_COST)
+
+        dist[0] = 0
+        k++
+
+        for (const [from, to, price] of flights) {
+          if (adj[from] === undefined) {
+            adj[from] = []
+          }
+          adj[from].push([to, price])
+        }
+
+        while (k-- > 0 && queue.length > 0) {
+          const [to, price] = queue.shift()
+          console.log({ visiting: to })
+          if (adj[to] !== undefined) {
+            for (const [neighbour, nextPrice] of adj[to]) {
+              const newPrice = price + nextPrice
+              if (newPrice < dist[neighbour]) {
+                dist[neighbour] = newPrice
+                queue.push([neighbour, newPrice])
+              }
+            }
+          }
+        }
+        if (dist[dst] !== MAX_COST) {
+          console.log({ arrived: dst })
+        }
+
+        return dist[dst] === MAX_COST ? -1 : dist[dst]
+      }
+
+      expect(
+        findCheapestPrice(
+          5,
+          [
+            [0, 1, 100],
+            [1, 2, 100],
+            [2, 0, 100],
+            [1, 3, 600],
+            [2, 3, 200],
+          ],
+          0,
+          3,
+          1,
+        ),
+      ).toBe(700)
+    })
+    it('problem 3', () => {
+      /*
+      A real-world question around giving two lists find the overlap and 
+      order the output based on requirements in the problem statement and 
+      requirements later added by the interviewer.
+      */
+
+      function findOverlap(
+        list1: string[],
+        list2: string[],
+        sortOrder?: string[] | undefined,
+      ) {
+        const set = new Set(list1)
+        const overlap = new Array<string>()
+
+        for (let index = 0; index < list2.length; index++) {
+          const element = list2[index]
+
+          if (set.has(element)) {
+            overlap.push(element)
+          }
+        }
+
+        return overlap.sort((a, b) => {
+          if (!sortOrder) {
+            return a.localeCompare(b)
+          }
+          const indexA = sortOrder.indexOf(a)
+          const indexB = sortOrder.indexOf(b)
+          return indexA - indexB
+        })
+      }
+
+      const list1 = ['apple', 'banana', 'cherry', 'date']
+      const list2 = ['banana', 'date', 'fig', 'grape']
+      const sortOrder = ['date', 'banana', 'apple', 'cherry', 'fig', 'grape']
+
+      expect(findOverlap(list1, list2, sortOrder)).toStrictEqual([
+        'date',
+        'banana',
+      ])
+      expect(findOverlap(list1, list2)).toStrictEqual(['banana', 'date'])
+    })
+    it('problem 4', () => {
+      /*
+      Find the minimum value in a dictionary.
+      Answer question
+      Question 2
+      Create a UI element/component with built-in input validation.
+      Answer question
+      Question 3
+      General stuff like why Stripe, what are you looking for?
+      Answer question
+      Question 4
+      Find and fix a bug in a third-party library.
+      */
+
+      function findMinInDict(dict: {}): number {
+        let min = Number.MAX_VALUE
+        for (const key in dict) {
+          let value = dict[key]
+
+          if (value < min) {
+            min = value
+          }
+        }
+        return min
+      }
+
+      expect(findMinInDict({ 0: 89, 2: 3 })).toBe(3)
+      expect(findMinInDict({ 0: 89, 2: 3 })).toBe(
+        Math.min(...Object.values({ 0: 89, 2: 3 })),
+      )
+    })
+    it('problem 5', () => {
+      /*
+      Find min value of a key given a set of records.
+      */
     })
   })
 })
