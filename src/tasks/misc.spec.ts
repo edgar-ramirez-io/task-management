@@ -396,18 +396,13 @@ describe('misc', () => {
 
       push(val: number) {
         if (this.stack.length > 0) {
-          const min = Math.min(
-            val,
-            this.secondStack[this.secondStack.length - 1],
-          )
-          this.stack.push(val)
-          if (min !== this.secondStack[this.secondStack.length - 1]) {
-            this.secondStack.push(min)
+          if (val <= this.secondStack[this.secondStack.length - 1]) {
+            this.secondStack.push(val)
           }
         } else {
-          this.stack.push(val)
           this.secondStack.push(val)
         }
+        this.stack.push(val)
       }
 
       pop() {
@@ -485,6 +480,18 @@ describe('misc', () => {
       minStack.pop()
       expect(minStack.top()).toBe(0)
       expect(minStack.getMin()).toBe(-2)
+    })
+    it('leetcode2', () => {
+      const minStack = new MinStack()
+      minStack.push(0)
+      minStack.push(1)
+      minStack.push(0)
+      expect(minStack.getMin()).toBe(0)
+      expect(minStack.secondStack).toStrictEqual([0, 0])
+      minStack.pop()
+      expect(minStack.stack).toStrictEqual([0, 1])
+      expect(minStack.secondStack).toStrictEqual([0])
+      expect(minStack.getMin()).toBe(0)
     })
   })
 
